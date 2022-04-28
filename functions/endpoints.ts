@@ -80,7 +80,7 @@ async function processGetRequest(params: any) {
 async function getZakatNisabFromMuis() {
   let msg = await axios.get('https://www.zakat.sg/current-past-nisab-values/')
   try {
-    var extractedData = msg.data.split('<h2>')[1].split('</h2>')[0].split('>')
+    var extractedData = msg.data.split('<h2')[1].split('</h2>')[0].split('>')
     var nisab_value = extractedData[extractedData.length - 1]
       .replace('$', '')
       .replace(',', '')
