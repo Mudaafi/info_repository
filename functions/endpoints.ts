@@ -120,9 +120,7 @@ async function processGetRequest(params: any) {
 
 // Request fail because they implemented Cloudflare
 async function getZakatNisabFromMuis() {
-  let msg = await axios.get('https://www.zakat.sg/current-past-nisab-values/', {
-    headers
-  })
+  let msg = await axios.get('https://www.zakat.sg/current-past-nisab-values/')
   try {
     var extractedData = msg.data.split('<h2')[1].split('</h2>')[0].split('>')
     var nisab_value = extractedData[extractedData.length - 1]
