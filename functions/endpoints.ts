@@ -64,7 +64,13 @@ async function processGetRequest(params: any) {
     case 'zakat':
       if ((params.region = 'SG')) {
         let nisabValue
-        nisabValue = await getZakatNisabFromMuisPuppeteer()
+        try {
+          nisabValue = await getZakatNisabFromMuisFromGoogle()
+        } catch (e) {
+          // Do nothing
+        }
+        if (!nisabValue)
+          nisabValue = await getZakatNisabFromMuisPuppeteer()
         return {
           statusCode:
             nisabValue != undefined
