@@ -1,6 +1,36 @@
 import { StatusCodes } from 'http-status-codes'
 import { ReturnResponse } from './lib/endpoint-types'
 import axios, { AxiosError } from 'axios'
+import chromium from 'chrome-aws-lambda'
+import puppeteer from 'puppeteer-core'
+
+const getPuppeteer = async () => {
+  return await puppeteer.launch({
+    args: chromium.args,
+    executablePath:
+      "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" || (await chromium.executablePath),
+    headless: chromium.headless,
+  })
+}
+
+const headers = {
+  'X-Custom-Header': 'foobar',
+  accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+  "accept-language": "en-US,en;q=0.9",
+  "sec-ch-ua": `"Chromium";v="112", "Google Chrome";v="112", "Not:A-Brand";v="99"`,
+  "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36",
+  "upgrade-insecure-requests": 1,
+  "sec-ch-ua-platform": "macOS",
+
+  "host": "www.zakat.sg",
+  "cache-control": "no-cache",
+  "pragma": "no-cache",
+  "sec-ch-ua-mobile": "?0",
+  "sec-fetch-dest": "document",
+  "sec-fetch-mode": "navigate",
+  "sec-fetch-site": "none",
+  "sec-fetch-user": "?1",
+}
 
 const TELE_BOT_KEY = process.env.TELE_BOT_KEY || ''
 const DEV_ID = process.env.DEV_ID || ''
@@ -53,15 +83,15 @@ async function processGetRequest(params: any) {
       }
     case 'zakat':
       if ((params.region = 'SG')) {
-        let nisab_value = await getZakatNisabFromMuis()
+        let nisabValue = await getZakatNisabFromMuisPuppeteer()
         return {
           statusCode:
-            nisab_value != undefined
+            nisabValue != undefined
               ? StatusCodes.OK
               : StatusCodes.INTERNAL_SERVER_ERROR,
           body:
-            nisab_value != undefined
-              ? nisab_value
+            nisabValue != undefined
+              ? nisabValue
               : 'Error Getting Nisab Value',
         }
       }
@@ -69,6 +99,17 @@ async function processGetRequest(params: any) {
         statusCode: StatusCodes.BAD_REQUEST,
         body: 'Region not coded yet.',
       }
+      case 'test':
+        var zakat = await getZakatNisabFromMuis()
+        if (zakat)
+          return {
+            statusCode: StatusCodes.OK,
+            body: zakat
+          }
+        return {
+          statusCode: StatusCodes.FORBIDDEN,
+          body: "Error getting Nisab Value"
+        }
     default:
       return {
         statusCode: StatusCodes.BAD_REQUEST,
@@ -77,8 +118,11 @@ async function processGetRequest(params: any) {
   }
 }
 
+// Request fail because they implemented Cloudflare
 async function getZakatNisabFromMuis() {
-  let msg = await axios.get('https://www.zakat.sg/current-past-nisab-values/')
+  let msg = await axios.get('https://www.zakat.sg/current-past-nisab-values/', {
+    headers
+  })
   try {
     var extractedData = msg.data.split('<h2')[1].split('</h2>')[0].split('>')
     var nisab_value = extractedData[extractedData.length - 1]
@@ -90,6 +134,31 @@ async function getZakatNisabFromMuis() {
     )
   }
   return nisab_value
+}
+
+async function getZakatNisabFromMuisPuppeteer() {
+  const browser = await getPuppeteer();
+  let zakat, nisabValue
+
+  const page = await browser.newPage();
+  await page.setUserAgent('Mozilla/5.0 (Windows NT 5.1; rv:5.0) Gecko/20100101 Firefox/5.0')
+  await page.setJavaScriptEnabled(true)
+  await page.setViewport({width: 1080, height: 1024});
+  try {
+    await page.goto('https://www.zakat.sg/current-past-nisab-values/');
+    const zakatSelector = 'h2';
+    const zakatElement = await page.waitForSelector(zakatSelector);
+    if (zakatElement) {
+      zakat = await zakatElement.evaluate((el) => el.textContent)
+      if (zakat)
+        nisabValue = zakat.replace('$', '').replace(',', '')
+    }
+  } catch (e) {
+    throw new Error(
+      `Error Getting Nisab Value from MUIS. Suspected change in format. Current Parsing: via h2 tag`,
+    )
+  }
+  return nisabValue
 }
 
 async function processError(errorMsg: Error) {

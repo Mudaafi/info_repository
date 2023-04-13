@@ -1,2 +1,6 @@
+[functions]
+  node_bundler = "esbuild"
+
 [build]
+  build = "npm run build"
   functions = "lambda" #  netlify-lambda reads this
