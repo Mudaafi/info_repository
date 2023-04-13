@@ -164,6 +164,7 @@ async function getZakatNisabFromMuisPuppeteer() {
         nisabValue = zakat.replace('$', '').replace(',', '')
     }
   } catch (e) {
+    console.log("muis error", e)
     throw new Error(
       `Error Getting Nisab Value from MUIS. Suspected change in format. Current Parsing: via h2 tag`,
     )
@@ -174,8 +175,12 @@ async function getZakatNisabFromMuisPuppeteer() {
 }
 
 async function processError(errorMsg: Error) {
-  await sendMessage(TELE_BOT_KEY, DEV_ID, `<b>Error encountered</b>:`)
-  await sendMessage(TELE_BOT_KEY, DEV_ID, `${errorMsg.message}`)
+  try {
+    await sendMessage(TELE_BOT_KEY, DEV_ID, `<b>Error encountered</b>:`)
+    await sendMessage(TELE_BOT_KEY, DEV_ID, `${errorMsg.message}`)
+  } catch (e) {
+    console.log(`Error Sending Error: ${e}`)
+  }
 }
 
 const TELE_API = 'https://api.telegram.org/bot'
