@@ -7,8 +7,7 @@ import puppeteer from 'puppeteer-core'
 const getPuppeteer = async () => {
   return await puppeteer.launch({
     args: chromium.args,
-    executablePath:
-      "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" || (await chromium.executablePath),
+    executablePath: (await chromium.executablePath) || "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
     headless: true,
   })
 }
@@ -179,7 +178,7 @@ async function processError(errorMsg: Error) {
     await sendMessage(TELE_BOT_KEY, DEV_ID, `<b>Error encountered</b>:`)
     await sendMessage(TELE_BOT_KEY, DEV_ID, `${errorMsg.message}`)
   } catch (e) {
-    console.log(`Error Sending Error: ${e}`)
+    console.log(`Error Sending Error: ${JSON.stringify(e)}`)
   }
 }
 
