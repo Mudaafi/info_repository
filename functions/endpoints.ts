@@ -31,6 +31,7 @@ export async function handler(event: any, context: any) {
     }
   } catch (e) {
     if (e instanceof Error) {
+      console.log(JSON.stringify(e))
       err = e
     }
     await processError(err)
@@ -175,7 +176,7 @@ async function getZakatNisabFromMuisFromGoogle() {
     var nisabValue = nisabValueStr.replace('$', '').replace(',', '')
   } catch (e) {
     throw new Error(
-      `Error Getting Nisab Value from Google. Suspected change in format. Current Parsing: via <span class="hgKElc"><b>NISAB_VALUE</b> tag 
+      `Error Getting Nisab Value from Google. Suspected change in format. Current Parsing: via span and b tag 
       
       ${JSON.stringify(e)}`,
     )
