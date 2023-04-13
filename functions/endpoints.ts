@@ -1,17 +1,17 @@
 import { StatusCodes } from 'http-status-codes'
 import { ReturnResponse } from './lib/endpoint-types'
 import axios, { AxiosError } from 'axios'
-import chromium from 'chrome-aws-lambda'
-import puppeteer from 'puppeteer-core'
+// import chromium from 'chrome-aws-lambda'
+// import puppeteer from 'puppeteer-core'
 
-const getPuppeteer = async () => {
-  return await puppeteer.launch({
-    args: chromium.args,
-    executablePath:
-      "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" || (await chromium.executablePath),
-    headless: true,
-  })
-}
+// const getPuppeteer = async () => {
+//   return await puppeteer.launch({
+//     args: chromium.args,
+//     executablePath:
+//       "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" || (await chromium.executablePath),
+//     headless: true,
+//   })
+// }
 
 const headers = {
   'X-Custom-Header': 'foobar',
@@ -81,24 +81,24 @@ async function processGetRequest(params: any) {
         statusCode: StatusCodes.OK,
         body: 'Test GET function executed',
       }
-    case 'zakat':
-      if ((params.region = 'SG')) {
-        let nisabValue = await getZakatNisabFromMuisPuppeteer()
-        return {
-          statusCode:
-            nisabValue != undefined
-              ? StatusCodes.OK
-              : StatusCodes.INTERNAL_SERVER_ERROR,
-          body:
-            nisabValue != undefined
-              ? nisabValue
-              : 'Error Getting Nisab Value',
-        }
-      }
-      return {
-        statusCode: StatusCodes.BAD_REQUEST,
-        body: 'Region not coded yet.',
-      }
+    // case 'zakat':
+    //   if ((params.region = 'SG')) {
+    //     let nisabValue = await getZakatNisabFromMuisPuppeteer()
+    //     return {
+    //       statusCode:
+    //         nisabValue != undefined
+    //           ? StatusCodes.OK
+    //           : StatusCodes.INTERNAL_SERVER_ERROR,
+    //       body:
+    //         nisabValue != undefined
+    //           ? nisabValue
+    //           : 'Error Getting Nisab Value',
+    //     }
+    //   }
+    //   return {
+    //     statusCode: StatusCodes.BAD_REQUEST,
+    //     body: 'Region not coded yet.',
+    //   }
     case 'test':
       var zakat = await getZakatNisabFromMuis()
       if (zakat)
@@ -136,32 +136,32 @@ async function getZakatNisabFromMuis() {
   return nisab_value
 }
 
-async function getZakatNisabFromMuisPuppeteer() {
-  const browser = await getPuppeteer();
-  let zakat, nisabValue
+// async function getZakatNisabFromMuisPuppeteer() {
+//   const browser = await getPuppeteer();
+//   let zakat, nisabValue
 
-  const page = await browser.newPage();
-  await page.setUserAgent('Mozilla/5.0 (Windows NT 5.1; rv:5.0) Gecko/20100101 Firefox/5.0')
-  await page.setJavaScriptEnabled(true)
-  await page.setViewport({width: 1080, height: 1024});
-  try {
-    await page.goto('https://www.zakat.sg/current-past-nisab-values/');
-    const zakatSelector = 'h2';
-    const zakatElement = await page.waitForSelector(zakatSelector);
-    if (zakatElement) {
-      zakat = await zakatElement.evaluate((el) => el.textContent)
-      if (zakat)
-        nisabValue = zakat.replace('$', '').replace(',', '')
-    }
-  } catch (e) {
-    throw new Error(
-      `Error Getting Nisab Value from MUIS. Suspected change in format. Current Parsing: via h2 tag`,
-    )
-  }
-  page.close()
-  browser.close()
-  return nisabValue
-}
+//   const page = await browser.newPage();
+//   await page.setUserAgent('Mozilla/5.0 (Windows NT 5.1; rv:5.0) Gecko/20100101 Firefox/5.0')
+//   await page.setJavaScriptEnabled(true)
+//   await page.setViewport({width: 1080, height: 1024});
+//   try {
+//     await page.goto('https://www.zakat.sg/current-past-nisab-values/');
+//     const zakatSelector = 'h2';
+//     const zakatElement = await page.waitForSelector(zakatSelector);
+//     if (zakatElement) {
+//       zakat = await zakatElement.evaluate((el) => el.textContent)
+//       if (zakat)
+//         nisabValue = zakat.replace('$', '').replace(',', '')
+//     }
+//   } catch (e) {
+//     throw new Error(
+//       `Error Getting Nisab Value from MUIS. Suspected change in format. Current Parsing: via h2 tag`,
+//     )
+//   }
+//   page.close()
+//   browser.close()
+//   return nisabValue
+// }
 
 async function processError(errorMsg: Error) {
   await sendMessage(TELE_BOT_KEY, DEV_ID, `<b>Error encountered</b>:`)
