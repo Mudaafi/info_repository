@@ -164,15 +164,13 @@ async function getZakatNisabFromMuisFromGoogle() {
     msg = await axios.get('https://www.google.com/search?q=singapore+muis+nisab+value+this+year', {
       headers
     })
-    console.log(msg)
 
-    var nisabValueStr = msg.data.split('<span class="hgKElc"><b>')[1].split('</b>')[0]
+    var nisabValueStr = msg.data.split('>$')[1].split('</b>')[0].split(".")[0]
     var nisabValue = nisabValueStr.replace('$', '').replace(',', '')
   } catch (e) {
+    console.log(e)
     throw new Error(
-      `Error Getting Nisab Value from Google. Suspected change in format. Current Parsing: via span and b tag 
-      
-      ${JSON.stringify(e)}`,
+      `Error Getting Nisab Value from Google. Suspected change in format. Current Parsing: via span and b tag`,
     )
   }
   return nisabValue
