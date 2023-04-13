@@ -9,7 +9,7 @@ const getPuppeteer = async () => {
     args: chromium.args,
     executablePath:
       "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" || (await chromium.executablePath),
-    headless: chromium.headless,
+    headless: true,
   })
 }
 
