@@ -3,8 +3,7 @@
   functions = "lambda" #  netlify-lambda reads this
 
 [functions]
-  node_bundler = "esbuild"
   external_node_modules = [
-    "chrome-aws-lambda",
+    "@sparticuz/chromium",
     "puppeteer-core"
   ]

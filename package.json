@@ -5,18 +5,18 @@
   "main": "index.js",
   "scripts": {
     "serve": "netlify-lambda serve functions",
-    "build": "netlify-lambda build functions",
+    "build": "netlify-lambda --config ./webpack.functions.js build functions",
     "dev": "netlify-lambda serve --config ./webpack.functions.js functions",
     "test": "node index.ts"
   },
   "dependencies": {
     "axios": "^0.21.1",
-    "chrome-aws-lambda": "^10.1.0",
     "dom-parser": "^0.1.6",
     "encoding": "^0.1.13",
     "googleapis": "^73.0.0",
     "netlify-lambda": "^2.0.15",
-    "puppeteer-core": "^10.1.0"
+    "@sparticuz/chromium": "109",
+    "puppeteer-core": "^19.4.0"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.14.0",
@@ -31,6 +31,7 @@
     "http-status-codes": "^2.2.0",
     "prettier": "^2.2.1",
     "typescript": "^4.2.4",
+    "puppeteer": "^19.4.0",
     "webpack-node-externals": "^3.0.0"
   },
   "author": "Ahmad Mudaafi' <SleepyUndergrad@gmail.com>",

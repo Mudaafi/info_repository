@@ -1,13 +1,14 @@
 import { StatusCodes } from 'http-status-codes'
 import { ReturnResponse } from './lib/endpoint-types'
 import axios, { AxiosError } from 'axios'
-import chromium from 'chrome-aws-lambda'
+import chromium  from '@sparticuz/chromium'
+// import chromium from 'chrome-aws-lambda'
 import puppeteer from 'puppeteer-core'
 
 const getPuppeteer = async () => {
   return await puppeteer.launch({
     args: chromium.args,
-    executablePath: (await chromium.executablePath) || "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    executablePath: process.env.CHROME_PATH || (await chromium.executablePath()),
     headless: true,
   })
 }
@@ -154,7 +155,8 @@ async function getZakatNisabFromMuisPuppeteer() {
   await page.setJavaScriptEnabled(true)
   await page.setViewport({width: 1080, height: 1024});
   try {
-    await page.goto('https://www.zakat.sg/current-past-nisab-values/');
+    const x = await page.goto('https://www.zakat.sg/current-past-nisab-values/');
+    console.log(x)
     const zakatSelector = 'h2';
     const zakatElement = await page.waitForSelector(zakatSelector);
     if (zakatElement) {
