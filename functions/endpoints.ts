@@ -2,7 +2,6 @@ import { StatusCodes } from 'http-status-codes'
 import { ReturnResponse } from './lib/endpoint-types'
 import axios, { AxiosError } from 'axios'
 import chromium  from '@sparticuz/chromium'
-// import chromium from 'chrome-aws-lambda'
 import puppeteer from 'puppeteer-core'
 
 const getPuppeteer = async () => {
@@ -11,25 +10,6 @@ const getPuppeteer = async () => {
     executablePath: process.env.CHROME_PATH || (await chromium.executablePath()),
     headless: true,
   })
-}
-
-const headers = {
-  'X-Custom-Header': 'foobar',
-  accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-  "accept-language": "en-US,en;q=0.9",
-  "sec-ch-ua": `"Chromium";v="112", "Google Chrome";v="112", "Not:A-Brand";v="99"`,
-  "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36",
-  "upgrade-insecure-requests": 1,
-  "sec-ch-ua-platform": "macOS",
-
-  "host": "www.zakat.sg",
-  "cache-control": "no-cache",
-  "pragma": "no-cache",
-  "sec-ch-ua-mobile": "?0",
-  "sec-fetch-dest": "document",
-  "sec-fetch-mode": "navigate",
-  "sec-fetch-site": "none",
-  "sec-fetch-user": "?1",
 }
 
 const TELE_BOT_KEY = process.env.TELE_BOT_KEY || ''
@@ -50,12 +30,10 @@ export async function handler(event: any, context: any) {
       res = await processGetRequest(params)
     }
   } catch (e) {
-    console.log('erroring', e)
     if (e instanceof Error) {
       err = e
     }
     await processError(err)
-    console.log(e)
   }
   return res
 }
@@ -84,7 +62,14 @@ async function processGetRequest(params: any) {
       }
     case 'zakat':
       if ((params.region = 'SG')) {
-        let nisabValue = await getZakatNisabFromMuisPuppeteer()
+        let nisabValue
+        try {
+          nisabValue = await getZakatNisabFromMuisFromGoogle()
+        } catch (e) {
+          // Do nothing
+        }
+        if (!nisabValue)
+          nisabValue = await getZakatNisabFromMuisPuppeteer()
         return {
           statusCode:
             nisabValue != undefined
@@ -102,7 +87,7 @@ async function processGetRequest(params: any) {
       }
     case 'test':
       console.log('testing...')
-      var zakat = await getZakatNisabFromMuis()
+      var zakat = await getZakatNisabFromMuisFromGoogle()
       if (zakat)
         return {
           statusCode: StatusCodes.OK,
@@ -122,30 +107,82 @@ async function processGetRequest(params: any) {
 
 // Request fail because they implemented Cloudflare
 async function getZakatNisabFromMuis() {
+  const headers = {
+    'X-Custom-Header': 'foobar',
+    accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+    "accept-language": "en-US,en;q=0.9",
+    "sec-ch-ua": `"Chromium";v="112", "Google Chrome";v="112", "Not:A-Brand";v="99"`,
+    "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36",
+    "upgrade-insecure-requests": 1,
+    "sec-ch-ua-platform": "macOS",
+  
+    "host": "www.zakat.sg",
+    "cache-control": "no-cache",
+    "pragma": "no-cache",
+    "sec-ch-ua-mobile": "?0",
+    "sec-fetch-dest": "document",
+    "sec-fetch-mode": "navigate",
+    "sec-fetch-site": "none",
+    "sec-fetch-user": "?1",
+  }
   let msg;
   try {
     msg = await axios.get('https://www.zakat.sg/current-past-nisab-values/', {
       headers
     })
-  } catch (e) {
-    throw new Error(
-      `Axios Error ${e}`,
-    )
-  }
 
-  try {
     var extractedData = msg.data.split('<h2')[1].split('</h2>')[0].split('>')
-    var nisab_value = extractedData[extractedData.length - 1]
+    var nisabValue = extractedData[extractedData.length - 1]
       .replace('$', '')
       .replace(',', '')
   } catch (e) {
     throw new Error(
-      `Error Getting Nisab Value from MUIS. Suspected change in format. Current Parsing: via h2 tag`,
+      `Error Getting Nisab Value from MUIS. Suspected change in format. Current Parsing: via h2 tag
+      
+      ${JSON.stringify(e)}`,
     )
   }
-  return nisab_value
+  return nisabValue
 }
 
+async function getZakatNisabFromMuisFromGoogle() {
+  const headers = {
+    'X-Custom-Header': 'foobar',
+    accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+    "accept-language": "en-US,en;q=0.9",
+    "sec-ch-ua": `"Chromium";v="112", "Google Chrome";v="112", "Not:A-Brand";v="99"`,
+    "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36",
+    "upgrade-insecure-requests": 1,
+    "sec-ch-ua-platform": "macOS",
+  
+    "host": "www.google.com",
+    "cache-control": "no-cache",
+    "pragma": "no-cache",
+    "sec-ch-ua-mobile": "?0",
+    "sec-fetch-dest": "document",
+    "sec-fetch-mode": "navigate",
+    "sec-fetch-site": "none",
+    "sec-fetch-user": "?1",
+  }
+  let msg;
+  try {
+    msg = await axios.get('https://www.google.com/search?q=singapore+muis+nisab+value+this+year', {
+      headers
+    })
+
+    var nisabValueStr = msg.data.split('<span class="hgKElc"><b>')[1].split('</b>')[0]
+    var nisabValue = nisabValueStr.replace('$', '').replace(',', '')
+  } catch (e) {
+    throw new Error(
+      `Error Getting Nisab Value from Google. Suspected change in format. Current Parsing: via <span class="hgKElc"><b>NISAB_VALUE</b> tag 
+      
+      ${JSON.stringify(e)}`,
+    )
+  }
+  return nisabValue
+}
+
+// Doesn't work locally. Need to install a better version of chromium.
 async function getZakatNisabFromMuisPuppeteer() {
   const browser = await getPuppeteer();
   let zakat, nisabValue
@@ -155,8 +192,7 @@ async function getZakatNisabFromMuisPuppeteer() {
   await page.setJavaScriptEnabled(true)
   await page.setViewport({width: 1080, height: 1024});
   try {
-    const x = await page.goto('https://www.zakat.sg/current-past-nisab-values/');
-    console.log(x)
+    await page.goto('https://www.zakat.sg/current-past-nisab-values/');
     const zakatSelector = 'h2';
     const zakatElement = await page.waitForSelector(zakatSelector);
     if (zakatElement) {
@@ -165,9 +201,11 @@ async function getZakatNisabFromMuisPuppeteer() {
         nisabValue = zakat.replace('$', '').replace(',', '')
     }
   } catch (e) {
-    console.log("muis error", e)
+    console.log("Pupetteer error: ", JSON.stringify(e))
     throw new Error(
-      `Error Getting Nisab Value from MUIS. Suspected change in format. Current Parsing: via h2 tag`,
+      `Error Getting Nisab Value from MUIS (Puppeteer). Suspected change in format. Current Parsing: via h2 tag
+      
+      ${JSON.stringify(e)}`,
     )
   }
   page.close()
@@ -176,12 +214,8 @@ async function getZakatNisabFromMuisPuppeteer() {
 }
 
 async function processError(errorMsg: Error) {
-  try {
     await sendMessage(TELE_BOT_KEY, DEV_ID, `<b>Error encountered</b>:`)
     await sendMessage(TELE_BOT_KEY, DEV_ID, `${errorMsg.message}`)
-  } catch (e) {
-    console.log(`Error Sending Error: ${JSON.stringify(e)}`)
-  }
 }
 
 const TELE_API = 'https://api.telegram.org/bot'
