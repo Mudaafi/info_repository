@@ -64,14 +64,7 @@ async function processGetRequest(params: any) {
     case 'zakat':
       if ((params.region = 'SG')) {
         let nisabValue
-        try {
-          nisabValue = await getZakatNisabFromMuisFromGoogle()
-        } catch (e) {
-          // Do nothing
-          console.log("Cannot pull from Google:", e)
-        }
-        if (!nisabValue)
-          nisabValue = await getZakatNisabFromMuisPuppeteer()
+        nisabValue = await getZakatNisabFromMuisPuppeteer()
         return {
           statusCode:
             nisabValue != undefined
@@ -171,6 +164,7 @@ async function getZakatNisabFromMuisFromGoogle() {
     msg = await axios.get('https://www.google.com/search?q=singapore+muis+nisab+value+this+year', {
       headers
     })
+    console.log(msg)
 
     var nisabValueStr = msg.data.split('<span class="hgKElc"><b>')[1].split('</b>')[0]
     var nisabValue = nisabValueStr.replace('$', '').replace(',', '')
