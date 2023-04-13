@@ -67,6 +67,7 @@ async function processGetRequest(params: any) {
           nisabValue = await getZakatNisabFromMuisFromGoogle()
         } catch (e) {
           // Do nothing
+          console.log("Cannot pull from Google:", e)
         }
         if (!nisabValue)
           nisabValue = await getZakatNisabFromMuisPuppeteer()
