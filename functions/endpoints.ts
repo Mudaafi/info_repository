@@ -158,6 +158,8 @@ async function getZakatNisabFromMuisPuppeteer() {
       `Error Getting Nisab Value from MUIS. Suspected change in format. Current Parsing: via h2 tag`,
     )
   }
+  page.close()
+  browser.close()
   return nisabValue
 }
 
