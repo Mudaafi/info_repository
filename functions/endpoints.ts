@@ -99,17 +99,17 @@ async function processGetRequest(params: any) {
         statusCode: StatusCodes.BAD_REQUEST,
         body: 'Region not coded yet.',
       }
-      case 'test':
-        var zakat = await getZakatNisabFromMuis()
-        if (zakat)
-          return {
-            statusCode: StatusCodes.OK,
-            body: zakat
-          }
+    case 'test':
+      var zakat = await getZakatNisabFromMuis()
+      if (zakat)
         return {
-          statusCode: StatusCodes.FORBIDDEN,
-          body: "Error getting Nisab Value"
-        }
+          statusCode: StatusCodes.OK,
+          body: zakat
+      }
+      return {
+        statusCode: StatusCodes.FORBIDDEN,
+        body: "Error getting Nisab Value"
+      }
     default:
       return {
         statusCode: StatusCodes.BAD_REQUEST,
