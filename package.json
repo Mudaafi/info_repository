@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "serve": "netlify-lambda serve functions",
-    "build": "netlify-lambda build --config ./webpack.functions.js functions",
+    "build": "netlify-lambda build functions",
     "dev": "netlify-lambda serve --config ./webpack.functions.js functions",
     "test": "node index.ts"
   },
